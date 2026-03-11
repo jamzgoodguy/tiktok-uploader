@@ -62,6 +62,8 @@ class Cover(StrictModel):
 
 class UploadSelectors(StrictModel):
     iframe: str
+    copyright_check: str
+    editing_features: str
     split_window: str
     upload_video: str
     upload_finished: str
@@ -83,8 +85,13 @@ class UploadSelectors(StrictModel):
     post: str
     post_now: str
     post_confirmation: str
+    copyright_check_toggle: str
+    content_check_toggle: str
+    
 
     cookies_banner: CookiesBanner
+
+    
 
 
 class ScheduleSelectors(StrictModel):
