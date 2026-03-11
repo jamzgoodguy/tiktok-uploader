@@ -363,11 +363,16 @@ def complete_upload_form(
 
     _set_video(page, path=path, num_retries=num_retries, **kwargs)
 
+    _editing_features_gotit(page)
+    _uncheck_copyright(page)
+    _uncheck_content_checklite(page)
+
     if cover_path:
         _set_cover(page, cover_path)
     if not skip_split_window:
         _remove_split_window(page)
     _set_interactivity(page, **kwargs)
+   
     _set_description(page, description)
     if visibility != "everyone":
         _set_visibility(page, visibility)
@@ -394,6 +399,8 @@ def _go_to_upload(page: Page) -> None:
 
     # waits for the root to load
     page.wait_for_selector("#root", timeout=config.explicit_wait * 1000)
+
+
 
 
 def _set_description(page: Page, description: str) -> None:
@@ -549,6 +556,52 @@ def _remove_split_window(page: Page) -> None:
             window.click()
     except PlaywrightTimeoutError:
         logger.debug(red("Split window not found or operation timed out"))
+
+def _editing_features_gotit(page: Page) -> None:
+    """
+    click Got it on editing feature box
+    """
+    logger.debug(green("removing edit feature"))
+    edit_feature_box = config.selectors.upload.editing_features
+    try:
+        box = page.locator(f"xpath={edit_feature_box}")
+        if box.is_visible(timeout=config.implicit_wait * 2000):
+            box.click()
+        else:
+            logger.debug(green("No editing features box"))
+    except PlaywrightTimeoutError:
+        logger.debug(red("tidak ada box"))
+
+
+def _uncheck_copyright(page: Page) -> None:
+    logger.debug(green("try tun uncheck toggle copyright"))
+    copyright_check_toggle = config.selectors.upload.copyright_check_toggle
+    try:
+        box = page.locator(f"xpath={copyright_check_toggle}")
+        # Tunggu hingga elemen visible dan dapat diklik
+        box.wait_for(state="visible", timeout=10000)
+        box.scroll_into_view_if_needed()
+        box.click()
+        logger.debug(green("Toggle copyright berhasil diklik"))
+    except Exception as e:
+        logger.debug(red(f"Gagal: {e}"))
+
+
+def _uncheck_content_checklite(page: Page) -> None:
+    """
+    click Got it on editing feature box
+    """
+    logger.debug(green("try tun uncheck toggle check content"))
+    content_check_toggle = config.selectors.upload.content_check_toggle
+    try:
+        thumb = page.locator(f"xpath={content_check_toggle}")
+        thumb.wait_for(state="visible", timeout=10000)
+        thumb.scroll_into_view_if_needed()
+        thumb.click()
+        logger.debug(green("Toggle content berhasil diklik"))
+    except Exception as e:
+        logger.debug(red(f"Gagal: {e}"))          
+
 
 
 def _set_interactivity(
