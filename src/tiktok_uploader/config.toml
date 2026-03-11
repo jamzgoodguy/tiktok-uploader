@@ -42,12 +42,23 @@ user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 	[selectors.upload]
 	iframe = "//iframe"
 	
+	copyright_check = "//button[./div[text()='Turn on']]"
+	editing_features = "//button[./div[text()='Got it']]"
+
+	#disable music copyright check & content check lite
+
+	copyright_check_toggle = "//div[contains(@class, 'copyright-check')]//span[contains(@class, 'Switch__thumb')]"
+	content_check_toggle = "//div[contains(@class, 'headline-switch')]//span[contains(@class, 'Switch__thumb') and contains(@class, '--disabled-false')]"
+
+
 	split_window = "//button[./div[text()='Not now']]"
 	upload_video = "//input[@type='file']"
 	upload_finished = "//div[contains(@class, 'btn-cancel')]"
  	upload_confirmation = "//div[@title]"
  	process_confirmation = "//div[contains(@class, 'resolution-label-text')]"
 	description = "//div[@contenteditable='true']"
+	
+	
 
 	visibility = "//div[@class='tiktok-select-selector']"
 	options = ["Public", "Friends", "Private"]
