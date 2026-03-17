@@ -5,7 +5,7 @@ Key Classes
 -----------
 TikTokUploader : Client for uploading videos to TikTok
 """
-
+import random
 import datetime
 import logging
 import time
@@ -24,7 +24,7 @@ from tiktok_uploader.types import Cookie, ProxyDict, VideoDict
 from tiktok_uploader.utils import bold, green, red
 
 logger = logging.getLogger(__name__)
-
+random_num = random.randint(1, 7)
 
 class TikTokUploader:
     def __init__(
@@ -91,6 +91,7 @@ class TikTokUploader:
         product_id: str | None = None,
         cover: str | None = None,
         visibility: Literal["everyone", "friends", "only_you"] = "everyone",
+        edit_sound: str | None = None,
         num_retries: int = 1,
         skip_split_window: bool = False,
         *args,
@@ -112,6 +113,8 @@ class TikTokUploader:
             video_dict["visibility"] = visibility
         if cover:
             video_dict["cover"] = cover
+        if edit_sound is not None:                # ← tambahkan
+            video_dict["edit_sound"] = edit_sound
 
         failed_list = self.upload_videos(
             [video_dict], num_retries, skip_split_window, *args, **kwargs
@@ -195,6 +198,7 @@ class TikTokUploader:
                         )
                         failed.append(video)
                         continue
+                edit_sound = video.get("edit_sound", None)   # ← ambil dari dictionary
 
                 complete_upload_form(
                     page,
@@ -204,6 +208,7 @@ class TikTokUploader:
                     skip_split_window,
                     cover_path,
                     product_id,
+                    edit_sound,
                     visibility,
                     num_retries,
                     self.headless,
@@ -253,6 +258,7 @@ def upload_video(
     cookies_str: str | None = None,
     proxy: ProxyDict | None = None,
     product_id: str | None = None,
+    edit_sound: str | None = None,
     cover: str | None = None,
     visibility: Literal["everyone", "friends", "only_you"] = "everyone",
     browser: Literal["chrome", "safari", "chromium", "edge", "firefox"] = "chrome",
@@ -290,6 +296,8 @@ def upload_video(
         video_dict["visibility"] = visibility
     if cover:
         video_dict["cover"] = cover
+    if edit_sound is not None:                # ← tambahkan
+        video_dict["edit_sound"] = edit_sound
 
     try:
         return uploader.upload_videos([video_dict], *args, **kwargs)
@@ -349,6 +357,7 @@ def complete_upload_form(
     skip_split_window: bool,
     cover_path: str | None = None,
     product_id: str | None = None,
+    edit_sound: str | None = None,
     visibility: Literal["everyone", "friends", "only_you"] = "everyone",
     num_retries: int = 1,
     headless: bool = False,
@@ -367,6 +376,17 @@ def complete_upload_form(
     _uncheck_copyright(page)
     _uncheck_content_checklite(page)
 
+    if edit_sound is not None:
+        _start_edit_sound(page)
+        if edit_sound == "":
+            _select_sound_foryou(page)
+            _save_sound_edit(page)
+        else:
+            _search_sound(page, edit_sound)
+            _select_sound_result(page)
+            _select_sound_from_result(page)
+            _save_sound_edit(page)
+
     if cover_path:
         _set_cover(page, cover_path)
     if not skip_split_window:
@@ -382,6 +402,120 @@ def complete_upload_form(
         _add_product_link(page, product_id)
     _post_video(page)
 
+
+def _start_edit_sound(page: Page) -> None:
+    """
+    Start Edit sound from dashboard studio
+    
+    """
+    first_recomended_list = f"(//div[contains(@class, 'MusicPanelMusicItem__wrap')])[{random_num}]//button[.//span[@data-icon='PlusBold']]"
+    first_sound_result = f"(//div[contains(@class, 'Dropdown__content')]//div[contains(@class, 'MusicPanelSugList__item')])[{random_num}]"
+    select_from_result = f"(//div[contains(@class, 'MusicPanelSearchResultList__list')]//div[contains(@class, 'MusicPanelMusicItem__wrap')])[{random_num}]//button[.//span[@data-icon='PlusBold']]"
+
+    logger.debug(green("clicking Sounds Button"))
+    sound_button = config.selectors.sounds.sounds_button
+    try:
+        box = page.locator(f"xpath={sound_button}")
+        if box.is_visible(timeout=config.implicit_wait * 2000):
+            box.click()
+        else:
+            logger.debug(green("No Sound Button"))
+    except PlaywrightTimeoutError:
+        logger.debug(red("tidak ada tombol sound"))
+
+
+
+def _search_sound(page: Page, keyword_sound: str) -> None:
+    """
+    search some sound
+    """
+    
+    logger.debug(green("searching sound"))
+
+    search_sounds = config.selectors.sounds.search_sounds
+    keyword = keyword_sound
+    try:
+        box = page.locator(f"xpath={search_sounds}")
+        if box.is_visible(timeout=config.implicit_wait * 2000):
+            box.click()
+        else:
+            logger.debug(green("No search sound input"))
+        box.fill(keyword)
+        
+    except PlaywrightTimeoutError:
+        logger.debug(red("tidak ada search sound"))
+
+def _select_sound_result(page: Page) -> None:
+    logger.debug(green("selecting sound result"))
+    #first_recomended_list = f"(//div[contains(@class, 'MusicPanelMusicItem__wrap')])[{random_num}]//button[.//span[@data-icon='PlusBold']]"
+    afirst_sound_result = f"(//div[contains(@class, 'Dropdown__content')]//div[contains(@class, 'MusicPanelSugList__item')])[{random_num}]"
+    #select_from_result = f"(//div[contains(@class, 'MusicPanelSearchResultList__list')]//div[contains(@class, 'MusicPanelMusicItem__wrap')])[{random_num}]//button[.//span[@data-icon='PlusBold']]"
+
+    #first_sound_result = config.selectors.sounds.first_sound_result
+    try:
+        box = page.locator(f"xpath={afirst_sound_result}")
+        # Tunggu hingga elemen visible (timeout 30 detik)
+        box.wait_for(state="visible", timeout=30000)
+        box.click()
+        logger.debug(green("Sound result clicked"))
+    except PlaywrightTimeoutError:
+        logger.debug(red("Tidak ada hasil pencarian sound (timeout)"))
+    except Exception as e:
+        logger.debug(red(f"Error: {e}"))
+
+def _select_sound_from_result(page: Page) -> None:
+    logger.debug(green("selecting sound result lists"))
+    #first_recomended_list = f"(//div[contains(@class, 'MusicPanelMusicItem__wrap')])[{random_num}]//button[.//span[@data-icon='PlusBold']]"
+    #first_sound_result = f"(//div[contains(@class, 'Dropdown__content')]//div[contains(@class, 'MusicPanelSugList__item')])[{random_num}]"
+    aselect_from_result = f"(//div[contains(@class, 'MusicPanelSearchResultList__list')]//div[contains(@class, 'MusicPanelMusicItem__wrap')])[{random_num}]//button[.//span[@data-icon='PlusBold']]"
+
+    #select_from_result = config.selectors.sounds.select_from_result
+    try:
+        box = page.locator(f"xpath={aselect_from_result}")
+        # Tunggu hingga elemen visible (timeout 30 detik)
+        box.wait_for(state="visible", timeout=30000)
+        box.click()
+        logger.debug(green("Sound selected clicked"))
+    except PlaywrightTimeoutError:
+        logger.debug(red("sound kosong"))
+    except Exception as e:
+        logger.debug(red(f"Error: {e}"))
+
+def _save_sound_edit(page: Page) -> None:
+    logger.debug(green("Saving sound edit"))
+    save_edit = config.selectors.sounds.save_edit
+    try:
+        box = page.locator(f"xpath={save_edit}")
+        # Tunggu hingga elemen visible (timeout 30 detik)
+        box.wait_for(state="visible", timeout=30000)
+        box.click()
+        logger.debug(green("Edited sound saved"))
+    except PlaywrightTimeoutError:
+        logger.debug(red("gagal simpan"))
+    except Exception as e:
+        logger.debug(red(f"Error: {e}"))
+
+
+def _select_sound_foryou(page: Page) -> None:
+    """
+    selecting sound for you
+    """
+    logger.debug(green("No search input, selecting sound recomended for you"))
+    afirst_recomended_list = f"(//div[contains(@class, 'MusicPanelMusicItem__wrap')])[{random_num}]//button[.//span[@data-icon='PlusBold']]"
+    #first_sound_result = f"(//div[contains(@class, 'Dropdown__content')]//div[contains(@class, 'MusicPanelSugList__item')])[{random_num}]"
+    #aselect_from_result = f"(//div[contains(@class, 'MusicPanelSearchResultList__list')]//div[contains(@class, 'MusicPanelMusicItem__wrap')])[{random_num}]//button[.//span[@data-icon='PlusBold']]"
+
+
+    #first_recomended_list = config.selectors.sounds.first_recomended_list
+    try:
+        box = page.locator(f"xpath={afirst_recomended_list}")
+        box.wait_for(state="visible", timeout=30000)
+        box.click()
+        logger.debug(green("Sound recomended for you clicked"))
+    except PlaywrightTimeoutError:
+        logger.debug(red("sound Recomended for you kosong"))
+    except Exception as e:
+        logger.debug(red(f"Error: {e}"))
 
 def _go_to_upload(page: Page) -> None:
     """
@@ -688,8 +822,14 @@ def _set_schedule_video(page: Page, schedule: datetime.datetime) -> None:
     minute = schedule.minute
 
     try:
+        allow_dialog = page.locator(f"xpath={config.selectors.schedule.allow_dialog}")
         switch = page.locator(f"xpath={config.selectors.schedule.switch}")
         switch.click()
+        if allow_dialog.is_visible(timeout=2000):
+            logger.debug(red("Allow dialog appears"))
+            allow_dialog.click()
+            logger.debug(green("Allow clicked"))
+
         __date_picker(page, month, day)
         __time_picker(page, hour, minute)
     except Exception as e:
@@ -702,10 +842,11 @@ def __date_picker(page: Page, month: int, day: int) -> None:
     logger.debug(green("Picking date"))
 
     date_picker = page.locator(f"xpath={config.selectors.schedule.date_picker}")
+    date_picker.wait_for(state="visible", timeout=30000)
     date_picker.click()
 
     calendar = page.locator(f"xpath={config.selectors.schedule.calendar}")
-    calendar.wait_for(state="visible")
+    calendar.wait_for(state="visible", timeout=30000)
 
     calendar_month = page.locator(
         f"xpath={config.selectors.schedule.calendar_month}"
@@ -873,13 +1014,14 @@ def _add_product_link(page: Page, product_id: str) -> None:
             f"//tr[.//span[contains(text(), '{product_id}')] or .//div[contains(text(), '{product_id}')]]//input[@type='radio' and contains(@class, 'TUXRadioStandalone-input')]"
         )
         product_radio.click()
-        time.sleep(1)
+        time.sleep(3)
 
-        second_next = page.locator(
-            "//button[contains(@class, 'TUXButton--primary') and .//div[text()='Next']]"
-        )
+        #second_next = page.locator(
+        #    "//button[contains(@class, 'TUXButton--primary') and .//div[text()='Next']]"
+        #)
+        second_next = page.locator("//div[contains(@class, 'common-modal-footer')]//button[contains(@class, 'TUXButton--primary') and .//div[text()='Next']]")
         second_next.click()
-        time.sleep(1)
+        time.sleep(3)
 
         final_add = page.locator(
             "//button[contains(@class, 'TUXButton--primary') and .//div[text()='Add']]"
