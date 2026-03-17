@@ -92,11 +92,19 @@ class UploadSelectors(StrictModel):
     cookies_banner: CookiesBanner
 
     
+class SoundSelectors(StrictModel):
+    sounds_button: str
+    first_recomended_list: str
+    search_sounds: str
+    first_sound_result: str
+    select_from_result: str
+    save_edit: str
+    
 
 
 class ScheduleSelectors(StrictModel):
     switch: str
-
+    allow_dialog: str
     date_picker: str
     calendar: str
     calendar_month: str
@@ -114,6 +122,7 @@ class Selectors(StrictModel):
     login: LoginSelectors
     upload: UploadSelectors
     schedule: ScheduleSelectors
+    sounds: SoundSelectors
 
 
 class TikTokConfig(StrictModel):
