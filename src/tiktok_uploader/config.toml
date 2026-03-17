@@ -23,7 +23,7 @@ max_description_length = 150 # characters
 [paths]
 main = "https://www.tiktok.com/"
 login = "https://www.tiktok.com/login/phone-or-email/email"
-upload = "https://www.tiktok.com/creator-center/upload?lang=en"
+upload = "https://www.tiktok.com/creator-center/upload"
 
 [disguising]
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
@@ -74,19 +74,38 @@ user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 	post_now = "//button[.//div[text()='Post now']]"
 	post_confirmation = "//div[contains(text(), 'Your video has been uploaded') or contains(text(), '视频已发布') or contains(text(), 'Video published')]"
 
+	[selectors.sounds]
+
+	sounds_button = "//div[contains(@class, 'TUXTooltip-reference')]//button[contains(@class, 'editor-entrance') and contains(., 'Sounds')]"
+	search_sounds = "//div[contains(@class, 'MusicPanelSearchBar__wrap')]//input[@placeholder='Search sounds']"
+	save_edit = "//button[.//div[text()='Save']]"
+	first_recomended_list = "(//div[contains(@class, 'MusicPanelMusicItem__wrap')])[1]//button[.//span[@data-icon='PlusBold']]"
+	first_sound_result = "(//div[contains(@class, 'Dropdown__content')]//div[contains(@class, 'MusicPanelSugList__item')])[1]"
+	select_from_result = "(//div[contains(@class, 'MusicPanelSearchResultList__list')]//div[contains(@class, 'MusicPanelMusicItem__wrap')])[1]//button[.//span[@data-icon='PlusBold']]"
+	
+
+
+
 
 	[selectors.schedule]
-	switch = "//*[@id='tux-1']"
+	#switch = "//input[@type='radio' and @value='schedule']"
 
-	date_picker = "//div[contains(@class, 'date-picker-input')]"
+	switch = "//span[contains(@class, 'Radio__circle') and .//input[@value='schedule']]"
+	allow_dialog = "//button[contains(@class,'Button__root') and contains(@class,'Button__root--shape-default') and contains(@class,'Button__root--size-medium') and contains(@class,'Button__root--type-primary') and contains(@class,'Button__root--loading-false') and @role='button' and normalize-space()='Allow']"
+
+	#date_picker = "//div[contains(@class, 'date-picker-input')]"
+	#date_picker = "(//div[contains(@class, 'TUXTextInputCore-trailingIconWrapper')])[2]"
+	date_picker = "//div[contains(@class, 'TUXFormField') and .//input[contains(@value, '-')]]//div[contains(@class, 'TUXTextInputCore-trailingIconWrapper')]"
 	calendar = "//div[contains(@class, 'calendar-wrapper')]"
-	calendar_month = "//span[contains(@class, 'month-title')]"
-	calendar_valid_days = "//div[@class='jsx-4172176419 days-wrapper']//span[contains(@class, 'day') and contains(@class, 'valid')]"
-	calendar_arrows = "//span[contains(@class, 'arrow')]"  # first last, second next
+	calendar_month = "//div[contains(@class, 'calendar')]//span[contains(@class, 'month-title')]"
+	calendar_valid_days = "//div[contains(@class, 'calendar')]//span[contains(@class, 'day') and not(contains(@class, 'invalid'))]"
+	calendar_arrows = "//div[contains(@class, 'calendar')]//span[contains(@class, 'arrow')]"
 
-	time_picker = "//div[contains(@class, 'time-picker-input')]"
+	#time_picker = "//div[contains(@class, 'time-picker-input')]"
+	#time_picker = "(//div[contains(@class, 'TUXTextInputCore-trailingIconWrapper')])[1]"
+	time_picker = "//div[contains(@class, 'TUXFormField')][1]//div[contains(@class, 'TUXTextInputCore-trailingIconWrapper')]"
 	time_picker_text = "//div[contains(@class, 'time-picker-input')]/*[1]"
-	time_picker_container = "//div[@class='tiktok-timepicker-time-picker-container']"
+	time_picker_container = "//div[contains(@class, 'tiktok-timepicker-time-picker-container')]"
 	timepicker_hours = "//span[contains(@class, 'tiktok-timepicker-left')]"
 	timepicker_minutes = "//span[contains(@class, 'tiktok-timepicker-right')]"
 
